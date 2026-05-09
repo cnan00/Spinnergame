@@ -1,256 +1,3 @@
-
-Claude finished the response
-You said: generate a simple html viewable spin the wheel name picker, enter names, they go into the wheel, wheel spins chooses random person
-generate a simple html viewable  spin the wheel name picker, enter names, they go into the wheel, wheel spins chooses random person
-
-5:25 PM
-Claude responded: I'll create a spin-the-wheel name picker for you.
-I'll create a spin-the-wheel name picker for you.
-
-
-Created a file, read a file
-Created a file, read a file
-Open it in any browser. Type names in the textarea (one per line), hit Update Wheel, then click the SPIN button in the center. Winner pops up below after the spin settles.
-
-
-Wheel picker
-Code · HTML 
-You said: the spin button wigs out when hovered over and add the chosen name to another list automatically and remove from wheel
-the spin button wigs out when hovered over and add the chosen name to another list automatically and remove from wheel
-
-5:27 PM
-Claude responded: Now adding the winners panel to the HTML: Now updating the JavaScript to track winners and remove them from the wheel: Fixed both issues.
-
-Edited 2 files
-Edited 2 files
-Now adding the winners panel to the HTML:
-
-
-Add winners list panel to the right of the wheel
-Add winners list panel to the right of the wheel
-Now updating the JavaScript to track winners and remove them from the wheel:
-
-
-Edited 3 files, read a file
-Edited 3 files, read a file
-Fixed both issues. The spin button now scales smoothly on hover instead of jumping off-center (the global button hover was overriding the translate that centers it). After each spin, the winner pops into the Picked 🏆 panel on the right and gets removed from the wheel and the names textarea. Reset All dumps everyone back into the wheel.
-
-
-Wheel picker
-Code · HTML 
-You said: can you make the spin last longer for more suspence
-can you make the spin last longer for more suspence
-
-5:34 PM
-Claude responded: Spin now runs 8 seconds with 8-12 full rotations and a slower deceleration curve, so it rips around fast at the start and creeps to a stop near the end for tha…
-
-Edited 3 files, read a file
-Edited 3 files, read a file
-Spin now runs 8 seconds with 8-12 full rotations and a slower deceleration curve, so it rips around fast at the start and creeps to a stop near the end for that "is it gonna land on me" moment.
-
-
-Wheel picker
-Code · HTML 
-You said: can you make it where the name list can hide to a hamburger menu, add accessability settings, sound settings (add sounds), add fun visual toggle settings etc
-can you make it where the name list can hide to a hamburger menu, add accessability settings, sound settings (add sounds), add fun visual toggle settings etc
-
-6:06 PM
-Claude responded: Let me rebuild this with a settings drawer system.
-Let me rebuild this with a settings drawer system. This is a bigger refactor so I'll rewrite the whole file.
-
-
-Created 2 files, ran a command, read a file
-Created 2 files, ran a command, read a file
-Big upgrade. The names list is now behind the ☰ button (top left) and a new ⚙️ button (top right) opens settings.
-
-Sound (generated with Web Audio API, no files needed): tick on each segment as it passes the pointer during spin, four-note fanfare on win, master volume slider, on/off toggle.
-
-Visual: 5 themes (Default Blue, Dark, Sunset, Forest, Candy), confetti on win, wheel glow effect, auto-remove winner toggle, spin duration slider (2-15s).
-
-Accessibility: reduce motion (auto-detects your system pref), high contrast mode (yellow on black with cyan accents), text size slider (14-22px), speak winner aloud via speech synthesis, full keyboard support (Esc closes drawers, focus rings on everything), ARIA labels and live regions for screen readers.
-
-
-Wheel picker
-Code · HTML 
-You said: lets start off with no names pre filled and a prompt to add names maybe a button that shows up the first time
-lets start off with no names pre filled and a prompt to add names maybe a button that shows up the first time
-
-6:31 PM
-Claude responded: Now updating the JS to start with no names, hide the spin button when empty, and wire up the CTA: Now I need to call updateUIState() whenever names change and …
-
-Edited 2 files
-Edited 2 files
-Now updating the JS to start with no names, hide the spin button when empty, and wire up the CTA:
-
-
-Edited 3 files
-Edited 3 files
-Now I need to call updateUIState() whenever names change and wire up the CTA button. Let me view the relevant section to see where drawWheel gets called:
-
-
-Find all places drawWheel is called
-Find all places drawWheel is called
-I'll wrap the calls — easier to just add updateUIState() next to each drawWheel() call. Let me consolidate by making drawWheel itself call updateUIState:
-
-
-Have drawWheel call updateUIState so we don't have to add it everywhere
-Have drawWheel call updateUIState so we don't have to add it everywhere
-Let me view to see the current state:
-
-
-Viewed 2 files, edited a file
-Viewed 2 files, edited a file
-Now wire up the CTA button to open the names drawer and focus the textarea:
-
-
-Wire up CTA button to open names drawer
-Wire up CTA button to open names drawer
-Also update the names placeholder to be a bit more inviting and remove the pre-filled value:
-
-
-Find init line that sets namesInput value
-Find init line that sets namesInput value
-The init line at 845 sets the textarea to empty string (since names is empty), which is fine. The placeholder will show. That works as-is.
-
-
-Presented file
-Presented file
-Now it boots clean: empty wheel with a dashed-border "Your wheel is empty" state, and a bouncing + Add Names button right where the spin button used to be. The CTA opens the names drawer and auto-focuses the textarea so you can start typing. Once you add names and hit Update Wheel, the CTA disappears and the SPIN button takes its place.
-
-
-Wheel picker
-Code · HTML 
-You said: the "SPIN" in the middle is off centered after names are inputted
-the "SPIN" in the middle is off centered after names are inputted
-
-6:33 PM
-Claude responded: The issue is that display: flex on the spin button overrides its centering.
-The issue is that display: flex on the spin button overrides its centering. Let me fix the updateUIState function:
-
-
-Edited a file, read a file
-Edited a file, read a file
-Fixed. The button was being set to display: flex which made the "SPIN" text use flexbox layout instead of the default block centering. Setting it to empty string lets it fall back to the CSS default and the text centers properly again.
-
-
-Wheel picker
-Code · HTML 
-You said: how can i host this on github
-how can i host this on github
-
-6:38 PM
-Claude responded: GitHub Pages is the easiest way and it's free.
-GitHub Pages is the easiest way and it's free. Here's the quickest path:
-
-1. Make a repo
-
-Go to github.com, click New repository. Name it whatever (e.g. spin-wheel). Public. Skip the README/gitignore stuff.
-
-2. Add the file
-
-Rename your wheel-picker.html to index.html (this makes it load at the root URL automatically). Then either:
-
-Drag-and-drop in browser: on the empty repo page, click "uploading an existing file" and drag index.html in, then commit.
-Or via terminal if you have git set up:
-git init
-git add index.html
-git commit -m "initial"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/spin-wheel.git
-git push -u origin main
-3. Enable Pages
-
-In the repo, go to Settings → Pages (left sidebar). Under "Build and deployment":
-
-Source: Deploy from a branch
-Branch: main, folder: / (root)
-Save
-4. Wait ~1 minute, then visit
-
-Your site lives at https://YOUR_USERNAME.github.io/spin-wheel/
-
-The Pages settings page shows the URL once it's live (refresh after a minute). Any time you push a new commit to main, the site auto-updates within a minute or two.
-
-A couple things worth knowing: keep the filename index.html so the URL works without a path. If you ever want a custom domain, that's also under Settings → Pages. And since everything is client-side (no backend, no API keys), this is a perfect fit for Pages — nothing to configure.
-
-You said: its not working what do you see thsat might be wrong
-Screenshot 2026-05-09 at 6.44.43 PM.png
-Screenshot 2026-05-09 at 6.44.35 PM.png
-its not working what do you see thsat might be wrong
-
-6:45 PM
-Claude responded: Two issues working together:
-Two issues working together:
-
-1. Pages is set to deploy from /docs but your file is in the repo root. Look at the Pages settings — it says "currently being built from the /docs folder." Your wheel-picker.html is sitting in the root, so Pages can't find anything to serve.
-
-2. Your file is named wheel-picker.html, not index.html. Even after fixing #1, visiting https://cnan00.github.io/Spinnergame/ will 404 because there's no index. You'd have to go to https://cnan00.github.io/Spinnergame/wheel-picker.html.
-
-Fix it like this:
-
-Easiest path — change the Pages setting to match what you have:
-
-On the Pages settings page (your first screenshot), click the /docs dropdown and switch it to / (root), then Save.
-Go to the repo's Code tab (second screenshot), click wheel-picker.html, hit the pencil icon to edit, then click the filename at the top and rename it to index.html. Commit.
-Wait about a minute, then visit https://cnan00.github.io/Spinnergame/ — should load the wheel directly.
-
-If you'd rather not rename, you can keep wheel-picker.html and just use that full URL, but index.html is the convention and gives you a clean URL.
-
-Screenshot 2026-05-09 at 6.47.31 PM.png
-Screenshot 2026-05-09 at 6.47.23 PM.png
-6:47 PM
-Claude responded: Everything looks correct now — file is index.
-Everything looks correct now — file is index.html in the root, branch is main, source is /(root), and Pages says "Your site is live at https://cnan00.github.io/Spinnergame/" with the most recent deployment "1 minute ago."
-
-It should be working. A few things to try:
-
-Click the "Visit site" button on the Pages settings page (top right of that green-bordered box). That goes to the exact URL Pages thinks is live.
-Hard refresh if you already had the URL open. GitHub Pages caches aggressively — the old 404 page might still be loading from cache. On Mac: Cmd+Shift+R, or open in a private/incognito window.
-Give it another minute. Even though it says deployed, the CDN propagation sometimes lags 1-2 minutes after the green checkmark appears.
-If you click Visit site and it still 404s, screenshot what loads and I'll take another look. But based on these two screenshots, the config is right — this is almost certainly just a caching delay on your end.
-
-You said: everything is good but can you make sure the site is mobile friendly?
-everything is good but can you make sure the site is mobile friendly?
-
-6:48 PM
-Claude responded: Let me check the current state and make it properly mobile-friendly.
-Let me check the current state and make it properly mobile-friendly. The main issues will be the missing viewport meta tag, the fixed-width drawer, and some sizing.
-
-
-Check if viewport meta is set
-Check if viewport meta is set
-No viewport tag — that's the biggest issue. Let me fix that and tighten up the mobile layout:
-
-
-Add viewport meta tag for proper mobile rendering
-Add viewport meta tag for proper mobile rendering
-Now let me add a mobile media query block. I'll add it at the end of the styles before the closing </style>:
-
-
-Add mobile-specific media queries before closing style tag
-Add mobile-specific media queries before closing style tag
-Now one more thing — the wheel canvas on small screens should size to viewport width minus some padding so it's not cut off:
-
-
-Edited a file, read a file
-Edited a file, read a file
-Now it's properly mobile-friendly. Key fixes:
-
-The viewport meta tag was missing entirely, which is why mobile probably looked zoomed-out and weird. Added that plus a theme color for the mobile browser chrome. Drawers now go full-width on phones instead of being a fixed 340px (which can look awkward on narrow screens). Textarea and form inputs use 16px font specifically because anything smaller triggers iOS Safari to auto-zoom when you tap to type. Touch devices get hover effects disabled so buttons don't get "stuck" in their hover state after tapping. iOS notch/home-indicator safe areas are respected so the top bar doesn't hide behind the notch on iPhones.
-
-Push the change to your repo (index.html → commit) and Pages will redeploy in about a minute.
-
-
-Wheel picker
-Code · HTML 
-
-
-
-
-Claude is AI and can make mistakes. Please double-check responses.
-Wheel picker · HTML
-Copy
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -283,12 +30,12 @@ Copy
   body.theme-candy { --bg-grad-1: #ff9a9e; --bg-grad-2: #fad0c4; }
   body.high-contrast { --panel-bg: rgba(0,0,0,0.85); --text: #ffff00; --accent: #00ffff; }
   body.high-contrast canvas { background: #000 !important; }
- 
+
   body.reduce-motion * {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
- 
+
   .topbar {
     position: sticky;
     top: 0;
@@ -321,7 +68,7 @@ Copy
   }
   .icon-btn:hover { background: rgba(255,255,255,0.25); }
   .icon-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
- 
+
   .drawer {
     position: fixed;
     top: 0;
@@ -361,7 +108,7 @@ Copy
     transition: opacity 0.3s;
   }
   .scrim.show { opacity: 1; pointer-events: auto; }
- 
+
   textarea {
     width: 100%;
     height: 280px;
@@ -390,7 +137,7 @@ Copy
   button.action.secondary { background: #fff; }
   button.action:disabled { opacity: 0.5; cursor: not-allowed; }
   button.action:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
- 
+
   .setting {
     margin-bottom: 18px;
     padding-bottom: 14px;
@@ -444,7 +191,7 @@ Copy
   .switch input:checked + .slider { background: var(--accent); }
   .switch input:checked + .slider:before { transform: translateX(20px); }
   .switch input:focus-visible + .slider { outline: 3px solid var(--accent); outline-offset: 2px; }
- 
+
   .main {
     display: flex;
     flex-direction: column;
@@ -503,7 +250,7 @@ Copy
     outline-offset: 4px;
   }
   .center-btn:disabled { opacity: 0.6; cursor: not-allowed; }
- 
+
   .winner {
     margin-top: 24px;
     font-size: 2em;
@@ -517,7 +264,7 @@ Copy
     100% { transform: scale(1); opacity: 1; }
   }
   body.reduce-motion .winner.show { animation: none; }
- 
+
   .winners-section {
     width: 100%;
     max-width: 480px;
@@ -540,7 +287,7 @@ Copy
   }
   .winners-list li .num { opacity: 0.6; font-size: 0.85em; font-weight: 400; }
   .empty-msg { opacity: 0.6; font-style: italic; }
- 
+
   .confetti-piece {
     position: fixed;
     width: 10px; height: 14px;
@@ -551,7 +298,7 @@ Copy
   @keyframes fall {
     to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
- 
+
   .cta-overlay {
     position: absolute;
     top: 50%;
@@ -591,7 +338,7 @@ Copy
     50% { transform: translateY(-6px); }
   }
   body.reduce-motion .cta-overlay .cta-btn { animation: none; }
- 
+
   .sr-only {
     position: absolute;
     width: 1px; height: 1px;
@@ -601,7 +348,7 @@ Copy
     white-space: nowrap;
     border: 0;
   }
- 
+
   /* Mobile tweaks */
   @media (max-width: 600px) {
     .topbar { padding: 10px 12px; }
@@ -625,7 +372,7 @@ Copy
     .winners-list li { padding: 8px 12px; }
     .cta-overlay .cta-btn { padding: 10px 20px; font-size: 0.95em; }
   }
- 
+
   /* Touch device — bigger tap targets, no hover transforms that get stuck on tap */
   @media (hover: none) {
     button.action:hover { transform: none; }
@@ -635,7 +382,7 @@ Copy
     }
     .icon-btn:hover { background: rgba(255,255,255,0.15); }
   }
- 
+
   /* Respect notch on iOS */
   @supports (padding: max(0px)) {
     .topbar {
@@ -653,9 +400,9 @@ Copy
     <h1>🎯 Spin the Wheel</h1>
     <button id="settingsBtn" class="icon-btn" aria-label="Open settings" aria-expanded="false">⚙️</button>
   </div>
- 
+
   <div id="scrim" class="scrim"></div>
- 
+
   <aside id="namesDrawer" class="drawer left" aria-label="Names list" aria-hidden="true">
     <button class="drawer-close" data-close-drawer aria-label="Close names panel">×</button>
     <h2>Names</h2>
@@ -669,11 +416,11 @@ Copy
       <button class="action secondary" id="resetBtn">Restore Picked</button>
     </div>
   </aside>
- 
+
   <aside id="settingsDrawer" class="drawer right" aria-label="Settings" aria-hidden="true">
     <button class="drawer-close" data-close-drawer aria-label="Close settings">×</button>
     <h2>⚙️ Settings</h2>
- 
+
     <h3 style="margin-top:20px; font-size:1em; opacity:0.8;">🔊 Sound</h3>
     <div class="setting">
       <label>
@@ -689,7 +436,7 @@ Copy
       <label for="volume">Volume <span id="volumeVal">70%</span></label>
       <input type="range" id="volume" min="0" max="100" value="70" aria-label="Volume">
     </div>
- 
+
     <h3 style="margin-top:20px; font-size:1em; opacity:0.8;">✨ Visual</h3>
     <div class="setting">
       <label for="theme">Theme</label>
@@ -733,7 +480,7 @@ Copy
       <label for="spinDuration">Spin duration <span id="spinDurVal">8s</span></label>
       <input type="range" id="spinDuration" min="2" max="15" value="8" aria-label="Spin duration in seconds">
     </div>
- 
+
     <h3 style="margin-top:20px; font-size:1em; opacity:0.8;">♿ Accessibility</h3>
     <div class="setting">
       <label>
@@ -769,7 +516,7 @@ Copy
       <div class="desc">Uses speech synthesis</div>
     </div>
   </aside>
- 
+
   <main class="main">
     <div class="wheel-wrap">
       <div class="pointer" aria-hidden="true"></div>
@@ -781,14 +528,14 @@ Copy
       </div>
     </div>
     <div id="winner" class="winner" aria-live="polite" aria-atomic="true"></div>
- 
+
     <div class="winners-section">
       <h3>🏆 Picked</h3>
       <ul id="winnersList" class="winners-list" aria-live="polite"></ul>
       <p id="emptyMsg" class="empty-msg">No winners yet. Spin the wheel!</p>
     </div>
   </main>
- 
+
 <script>
   const canvas = document.getElementById('wheel');
   const ctx = canvas.getContext('2d');
@@ -800,7 +547,7 @@ Copy
   const winnerEl = document.getElementById('winner');
   const winnersList = document.getElementById('winnersList');
   const emptyMsg = document.getElementById('emptyMsg');
- 
+
   const namesBtn = document.getElementById('namesBtn');
   const settingsBtn = document.getElementById('settingsBtn');
   const namesDrawer = document.getElementById('namesDrawer');
@@ -808,7 +555,7 @@ Copy
   const scrim = document.getElementById('scrim');
   const ctaOverlay = document.getElementById('ctaOverlay');
   const ctaBtn = document.getElementById('ctaBtn');
- 
+
   const soundOn = document.getElementById('soundOn');
   const volume = document.getElementById('volume');
   const volumeVal = document.getElementById('volumeVal');
@@ -823,19 +570,19 @@ Copy
   const fontSize = document.getElementById('fontSize');
   const fontSizeVal = document.getElementById('fontSizeVal');
   const speakWinner = document.getElementById('speakWinner');
- 
+
   let names = [];
   let winners = [];
   let currentRotation = 0;
   let spinning = false;
   let lastTickSegment = -1;
- 
+
   const colors = [
     '#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCB77',
     '#4D96FF', '#C780FA', '#FF9671', '#00C9A7',
     '#F8B400', '#845EC2'
   ];
- 
+
   // Drawers
   function openDrawer(drawer, btn) {
     drawer.classList.add('open');
@@ -860,7 +607,7 @@ Copy
   scrim.addEventListener('click', closeAllDrawers);
   document.querySelectorAll('[data-close-drawer]').forEach(b => b.addEventListener('click', closeAllDrawers));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllDrawers(); });
- 
+
   // Audio (Web Audio API, no files needed)
   let audioCtx;
   function getAudio() {
@@ -904,20 +651,20 @@ Copy
       });
     } catch(e) {}
   }
- 
+
   function updateUIState() {
     const isEmpty = names.length === 0;
     ctaOverlay.style.display = isEmpty ? 'flex' : 'none';
     spinBtn.style.display = isEmpty ? 'none' : '';
   }
- 
+
   function drawWheel() {
     updateUIState();
     const size = canvas.width;
     const cx = size / 2, cy = size / 2;
     const r = size / 2 - 4;
     ctx.clearRect(0, 0, size, size);
- 
+
     if (names.length === 0) {
       ctx.fillStyle = '#f5f5f5';
       ctx.beginPath();
@@ -937,7 +684,7 @@ Copy
       ctx.fillText('Your wheel is empty', cx, cy - 30);
       return;
     }
- 
+
     if (names.length === 1) {
       ctx.fillStyle = colors[0];
       ctx.beginPath();
@@ -950,7 +697,7 @@ Copy
       ctx.fillText(names[0], cx, cy);
       return;
     }
- 
+
     const segAngle = (Math.PI * 2) / names.length;
     names.forEach((name, i) => {
       const start = i * segAngle - Math.PI / 2;
@@ -964,7 +711,7 @@ Copy
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 2;
       ctx.stroke();
- 
+
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(start + segAngle / 2);
@@ -978,7 +725,7 @@ Copy
       ctx.restore();
     });
   }
- 
+
   function updateNames() {
     names = namesInput.value.split('\n').map(s => s.trim()).filter(Boolean);
     currentRotation = 0;
@@ -988,7 +735,7 @@ Copy
     winnerEl.classList.remove('show');
     drawWheel();
   }
- 
+
   function renderWinners() {
     winnersList.innerHTML = '';
     if (winners.length === 0) {
@@ -1002,7 +749,7 @@ Copy
       });
     }
   }
- 
+
   function fireConfetti() {
     if (!confettiOn.checked || reduceMotion.checked) return;
     const confColors = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCB77', '#4D96FF', '#C780FA'];
@@ -1018,14 +765,14 @@ Copy
       setTimeout(() => piece.remove(), 4500);
     }
   }
- 
+
   function speak(text) {
     if (!speakWinner.checked || !window.speechSynthesis) return;
     const u = new SpeechSynthesisUtterance(`The winner is ${text}`);
     u.volume = volume.value / 100;
     speechSynthesis.speak(u);
   }
- 
+
   function spin() {
     if (spinning || names.length < 1) return;
     if (names.length === 1) {
@@ -1036,17 +783,17 @@ Copy
     spinBtn.disabled = true;
     winnerEl.textContent = '';
     winnerEl.classList.remove('show');
- 
+
     const winnerIndex = Math.floor(Math.random() * names.length);
     const segAngleDeg = 360 / names.length;
     const targetAngle = 360 - (winnerIndex * segAngleDeg + segAngleDeg / 2);
     const duration = reduceMotion.checked ? 0.5 : parseFloat(spinDuration.value);
     const fullSpins = reduceMotion.checked ? 1 : (5 + Math.floor(Math.random() * 5));
     const finalRotation = currentRotation + fullSpins * 360 + (targetAngle - (currentRotation % 360));
- 
+
     canvas.style.transition = `transform ${duration}s cubic-bezier(0.12, 0.86, 0.16, 1)`;
     canvas.style.transform = `rotate(${finalRotation}deg)`;
- 
+
     lastTickSegment = -1;
     const startTime = performance.now();
     const startRot = currentRotation;
@@ -1064,12 +811,12 @@ Copy
       if (t < 1 && spinning) requestAnimationFrame(tickLoop);
     }
     if (!reduceMotion.checked) requestAnimationFrame(tickLoop);
- 
+
     currentRotation = finalRotation;
- 
+
     setTimeout(() => handleWinner(winnerIndex), duration * 1000 + 100);
   }
- 
+
   function handleWinner(winnerIndex) {
     const winnerName = names[winnerIndex];
     winnerEl.textContent = `🎉 ${winnerName} 🎉`;
@@ -1077,7 +824,7 @@ Copy
     fireConfetti();
     playFanfare();
     speak(winnerName);
- 
+
     if (autoRemove.checked) {
       winners.push(winnerName);
       names.splice(winnerIndex, 1);
@@ -1088,11 +835,11 @@ Copy
       currentRotation = 0;
       drawWheel();
     }
- 
+
     spinning = false;
     spinBtn.disabled = false;
   }
- 
+
   updateBtn.addEventListener('click', updateNames);
   clearBtn.addEventListener('click', () => {
     namesInput.value = '';
@@ -1110,7 +857,7 @@ Copy
     drawWheel();
   });
   spinBtn.addEventListener('click', spin);
- 
+
   themeSel.addEventListener('change', () => {
     document.body.className = document.body.className
       .split(' ').filter(c => !c.startsWith('theme-')).join(' ').trim();
@@ -1135,16 +882,15 @@ Copy
   volume.addEventListener('input', () => {
     volumeVal.textContent = volume.value + '%';
   });
- 
+
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     reduceMotion.checked = true;
     document.body.classList.add('reduce-motion');
   }
- 
+
   namesInput.value = names.join('\n');
   drawWheel();
   renderWinners();
 </script>
 </body>
 </html>
- 
