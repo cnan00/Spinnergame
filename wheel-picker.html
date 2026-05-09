@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spin the Wheel Name Picker</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --bg-grad-1: #1e3c72;
+    --bg-grad-2: #2a5298;
+    --text: #ffffff;
+    --accent: #ffb347;
+    --panel-bg: rgba(255,255,255,0.08);
+    --font-size: 16px;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+    color: var(--text);
+    font-size: var(--font-size);
+    overflow-x: hidden;
+  }
+  body.theme-dark { --bg-grad-1: #0f0f1e; --bg-grad-2: #1a1a2e; }
+  body.theme-sunset { --bg-grad-1: #ff6e7f; --bg-grad-2: #bfe9ff; }
+  body.theme-forest { --bg-grad-1: #134e5e; --bg-grad-2: #71b280; }
+  body.theme-candy { --bg-grad-1: #ff9a9e; --bg-grad-2: #fad0c4; }
+  body.high-contrast { --panel-bg: rgba(0,0,0,0.85); --text: #ffff00; --accent: #00ffff; }
+  body.high-contrast canvas { background: #000 !important; }
+
+  body.reduce-motion * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
+  }
+  .topbar h1 {
+    margin: 0;
+    font-size: 1.3em;
+    font-weight: 700;
+  }
+  .icon-btn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: var(--text);
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,0.25); }
+  .icon-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .drawer {
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    width: 340px;
+    max-width: 90vw;
+    background: rgba(20, 30, 60, 0.97);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    padding: 20px;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+    z-index: 100;
+  }
+  .drawer.left { left: 0; transform: translateX(-110%); }
+  .drawer.right { right: 0; transform: translateX(110%); }
+  .drawer.open { transform: translateX(0); }
+  .drawer h2 { margin: 0 0 16px; font-size: 1.2em; }
+  .drawer-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 90;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+
+  textarea {
+    width: 100%;
+    height: 280px;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.9em;
+  }
+  .row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  button.action {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--accent);
+    color: #222;
+    transition: transform 0.1s;
+    font-size: 0.95em;
+  }
+  button.action:hover { transform: translateY(-1px); }
+  button.action.secondary { background: #fff; }
+  button.action:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.action:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+  .setting {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .setting:last-child { border-bottom: none; }
+  .setting label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  .setting .desc {
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-bottom: 6px;
+  }
+  .setting select, .setting input[type="range"] {
+    width: 100%;
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.9em;
+  }
+  .switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.25);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .slider:before {
+    content: "";
+    position: absolute;
+    height: 18px; width: 18px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider:before { transform: translateX(20px); }
+  .switch input:focus-visible + .slider { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+  }
+  .wheel-wrap {
+    position: relative;
+    width: min(90vw, 480px);
+    aspect-ratio: 1;
+  }
+  .pointer {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 34px solid var(--accent);
+    z-index: 3;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    transition: transform 8s cubic-bezier(0.12, 0.86, 0.16, 1);
+  }
+  body.glow canvas {
+    box-shadow: 0 0 60px var(--accent), 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .center-btn {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--bg-grad-1);
+    font-weight: 800;
+    font-size: 1em;
+    border: 6px solid var(--accent);
+    cursor: pointer;
+    z-index: 2;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .center-btn:hover:not(:disabled) {
+    transform: translate(-50%, -50%) scale(1.08);
+    box-shadow: 0 0 20px rgba(255,255,255,0.5);
+  }
+  .center-btn:focus-visible {
+    outline: 4px solid var(--accent);
+    outline-offset: 4px;
+  }
+  .center-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .winner {
+    margin-top: 24px;
+    font-size: 2em;
+    font-weight: 700;
+    min-height: 50px;
+    text-align: center;
+  }
+  .winner.show { animation: pop 0.5s ease; }
+  @keyframes pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  body.reduce-motion .winner.show { animation: none; }
+
+  .winners-section {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 24px;
+  }
+  .winners-section h3 { margin: 0 0 10px; }
+  .winners-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .winners-list li {
+    background: var(--panel-bg);
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+  }
+  .winners-list li .num { opacity: 0.6; font-size: 0.85em; font-weight: 400; }
+  .empty-msg { opacity: 0.6; font-style: italic; }
+
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 14px;
+    pointer-events: none;
+    z-index: 200;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  .cta-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% + 80px));
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+  }
+  .cta-overlay .cta-text {
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+  .cta-overlay .cta-btn {
+    pointer-events: auto;
+    background: var(--accent);
+    color: #222;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1em;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    animation: bounce 1.5s ease-in-out infinite;
+  }
+  .cta-overlay .cta-btn:hover { transform: scale(1.05); }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  body.reduce-motion .cta-overlay .cta-btn { animation: none; }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <button id="namesBtn" class="icon-btn" aria-label="Open names list" aria-expanded="false">☰</button>
+    <h1>🎯 Spin the Wheel</h1>
+    <button id="settingsBtn" class="icon-btn" aria-label="Open settings" aria-expanded="false">⚙️</button>
+  </div>
+
+  <div id="scrim" class="scrim"></div>
+
+  <aside id="namesDrawer" class="drawer left" aria-label="Names list" aria-hidden="true">
+    <button class="drawer-close" data-close-drawer aria-label="Close names panel">×</button>
+    <h2>Names</h2>
+    <p class="desc" style="opacity:0.7; font-size:0.85em; margin-top:-8px;">One per line</p>
+    <textarea id="namesInput" aria-label="Enter names, one per line" placeholder="Alice&#10;Bob&#10;Charlie&#10;Dana"></textarea>
+    <div class="row">
+      <button class="action" id="updateBtn">Update Wheel</button>
+      <button class="action secondary" id="clearBtn">Clear</button>
+    </div>
+    <div class="row" style="margin-top:14px;">
+      <button class="action secondary" id="resetBtn">Restore Picked</button>
+    </div>
+  </aside>
+
+  <aside id="settingsDrawer" class="drawer right" aria-label="Settings" aria-hidden="true">
+    <button class="drawer-close" data-close-drawer aria-label="Close settings">×</button>
+    <h2>⚙️ Settings</h2>
+
+    <h3 style="margin-top:20px; font-size:1em; opacity:0.8;">🔊 Sound</h3>
+    <div class="setting">
+      <label>
+        Sound effects
+        <span class="switch">
+          <input type="checkbox" id="soundOn" checked>
+          <span class="slider"></span>
+        </span>
+      </label>
+      <div class="desc">Tick sounds while spinning, fanfare on win</div>
+    </div>
+    <div class="setting">
+      <label for="volume">Volume <span id="volumeVal">70%</span></label>
+      <input type="range" id="volume" min="0" max="100" value="70" aria-label="Volume">
+    </div>
+
+    <h3 style="margin-top:20px; font-size:1em; opacity:0.8;">✨ Visual</h3>
+    <div class="setting">
+      <label for="theme">Theme</label>
+      <select id="theme">
+        <option value="">Default Blue</option>
+        <option value="theme-dark">Dark</option>
+        <option value="theme-sunset">Sunset</option>
+        <option value="theme-forest">Forest</option>
+        <option value="theme-candy">Candy</option>
+      </select>
+    </div>
+    <div class="setting">
+      <label>
+        Confetti on win
+        <span class="switch">
+          <input type="checkbox" id="confettiOn" checked>
+          <span class="slider"></span>
+        </span>
+      </label>
+    </div>
+    <div class="setting">
+      <label>
+        Wheel glow
+        <span class="switch">
+          <input type="checkbox" id="glowOn">
+          <span class="slider"></span>
+        </span>
+      </label>
+    </div>
+    <div class="setting">
+      <label>
+        Auto-remove winner
+        <span class="switch">
+          <input type="checkbox" id="autoRemove" checked>
+          <span class="slider"></span>
+        </span>
+      </label>
+      <div class="desc">Remove picked names from wheel</div>
+    </div>
+    <div class="setting">
+      <label for="spinDuration">Spin duration <span id="spinDurVal">8s</span></label>
+      <input type="range" id="spinDuration" min="2" max="15" value="8" aria-label="Spin duration in seconds">
+    </div>
+
+    <h3 style="margin-top:20px; font-size:1em; opacity:0.8;">♿ Accessibility</h3>
+    <div class="setting">
+      <label>
+        Reduce motion
+        <span class="switch">
+          <input type="checkbox" id="reduceMotion">
+          <span class="slider"></span>
+        </span>
+      </label>
+      <div class="desc">Minimize animations</div>
+    </div>
+    <div class="setting">
+      <label>
+        High contrast
+        <span class="switch">
+          <input type="checkbox" id="highContrast">
+          <span class="slider"></span>
+        </span>
+      </label>
+    </div>
+    <div class="setting">
+      <label for="fontSize">Text size <span id="fontSizeVal">16px</span></label>
+      <input type="range" id="fontSize" min="14" max="22" value="16" aria-label="Text size">
+    </div>
+    <div class="setting">
+      <label>
+        Announce winner aloud
+        <span class="switch">
+          <input type="checkbox" id="speakWinner">
+          <span class="slider"></span>
+        </span>
+      </label>
+      <div class="desc">Uses speech synthesis</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="wheel-wrap">
+      <div class="pointer" aria-hidden="true"></div>
+      <canvas id="wheel" width="500" height="500" role="img" aria-label="Wheel of names"></canvas>
+      <button id="spinBtn" class="center-btn" aria-label="Spin the wheel">SPIN</button>
+      <div id="ctaOverlay" class="cta-overlay">
+        <span class="cta-text">👋 Get started</span>
+        <button id="ctaBtn" class="cta-btn">+ Add Names</button>
+      </div>
+    </div>
+    <div id="winner" class="winner" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="winners-section">
+      <h3>🏆 Picked</h3>
+      <ul id="winnersList" class="winners-list" aria-live="polite"></ul>
+      <p id="emptyMsg" class="empty-msg">No winners yet. Spin the wheel!</p>
+    </div>
+  </main>
+
+<script>
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const namesInput = document.getElementById('namesInput');
+  const updateBtn = document.getElementById('updateBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const spinBtn = document.getElementById('spinBtn');
+  const winnerEl = document.getElementById('winner');
+  const winnersList = document.getElementById('winnersList');
+  const emptyMsg = document.getElementById('emptyMsg');
+
+  const namesBtn = document.getElementById('namesBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const namesDrawer = document.getElementById('namesDrawer');
+  const settingsDrawer = document.getElementById('settingsDrawer');
+  const scrim = document.getElementById('scrim');
+  const ctaOverlay = document.getElementById('ctaOverlay');
+  const ctaBtn = document.getElementById('ctaBtn');
+
+  const soundOn = document.getElementById('soundOn');
+  const volume = document.getElementById('volume');
+  const volumeVal = document.getElementById('volumeVal');
+  const themeSel = document.getElementById('theme');
+  const confettiOn = document.getElementById('confettiOn');
+  const glowOn = document.getElementById('glowOn');
+  const autoRemove = document.getElementById('autoRemove');
+  const spinDuration = document.getElementById('spinDuration');
+  const spinDurVal = document.getElementById('spinDurVal');
+  const reduceMotion = document.getElementById('reduceMotion');
+  const highContrast = document.getElementById('highContrast');
+  const fontSize = document.getElementById('fontSize');
+  const fontSizeVal = document.getElementById('fontSizeVal');
+  const speakWinner = document.getElementById('speakWinner');
+
+  let names = [];
+  let winners = [];
+  let currentRotation = 0;
+  let spinning = false;
+  let lastTickSegment = -1;
+
+  const colors = [
+    '#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCB77',
+    '#4D96FF', '#C780FA', '#FF9671', '#00C9A7',
+    '#F8B400', '#845EC2'
+  ];
+
+  // Drawers
+  function openDrawer(drawer, btn) {
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    btn.setAttribute('aria-expanded', 'true');
+    scrim.classList.add('show');
+  }
+  function closeAllDrawers() {
+    [namesDrawer, settingsDrawer].forEach(d => {
+      d.classList.remove('open');
+      d.setAttribute('aria-hidden', 'true');
+    });
+    [namesBtn, settingsBtn].forEach(b => b.setAttribute('aria-expanded', 'false'));
+    scrim.classList.remove('show');
+  }
+  namesBtn.addEventListener('click', () => openDrawer(namesDrawer, namesBtn));
+  settingsBtn.addEventListener('click', () => openDrawer(settingsDrawer, settingsBtn));
+  ctaBtn.addEventListener('click', () => {
+    openDrawer(namesDrawer, namesBtn);
+    setTimeout(() => namesInput.focus(), 350);
+  });
+  scrim.addEventListener('click', closeAllDrawers);
+  document.querySelectorAll('[data-close-drawer]').forEach(b => b.addEventListener('click', closeAllDrawers));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllDrawers(); });
+
+  // Audio (Web Audio API, no files needed)
+  let audioCtx;
+  function getAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+  function playTick() {
+    if (!soundOn.checked) return;
+    try {
+      const ac = getAudio();
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.frequency.value = 800 + Math.random() * 200;
+      osc.type = 'square';
+      const vol = (volume.value / 100) * 0.05;
+      gain.gain.setValueAtTime(vol, ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.05);
+      osc.connect(gain).connect(ac.destination);
+      osc.start();
+      osc.stop(ac.currentTime + 0.05);
+    } catch(e) {}
+  }
+  function playFanfare() {
+    if (!soundOn.checked) return;
+    try {
+      const ac = getAudio();
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      const vol = (volume.value / 100) * 0.15;
+      notes.forEach((freq, i) => {
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.frequency.value = freq;
+        osc.type = 'triangle';
+        const start = ac.currentTime + i * 0.12;
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(vol, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.4);
+        osc.connect(gain).connect(ac.destination);
+        osc.start(start);
+        osc.stop(start + 0.4);
+      });
+    } catch(e) {}
+  }
+
+  function updateUIState() {
+    const isEmpty = names.length === 0;
+    ctaOverlay.style.display = isEmpty ? 'flex' : 'none';
+    spinBtn.style.display = isEmpty ? 'none' : '';
+  }
+
+  function drawWheel() {
+    updateUIState();
+    const size = canvas.width;
+    const cx = size / 2, cy = size / 2;
+    const r = size / 2 - 4;
+    ctx.clearRect(0, 0, size, size);
+
+    if (names.length === 0) {
+      ctx.fillStyle = '#f5f5f5';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      // Subtle dashed border
+      ctx.strokeStyle = '#bbb';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 8]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r - 10, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#999';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Your wheel is empty', cx, cy - 30);
+      return;
+    }
+
+    if (names.length === 1) {
+      ctx.fillStyle = colors[0];
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(names[0], cx, cy);
+      return;
+    }
+
+    const segAngle = (Math.PI * 2) / names.length;
+    names.forEach((name, i) => {
+      const start = i * segAngle - Math.PI / 2;
+      const end = start + segAngle;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, start, end);
+      ctx.closePath();
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(start + segAngle / 2);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 3;
+      const label = name.length > 16 ? name.slice(0, 15) + '…' : name;
+      ctx.fillText(label, r - 18, 7);
+      ctx.restore();
+    });
+  }
+
+  function updateNames() {
+    names = namesInput.value.split('\n').map(s => s.trim()).filter(Boolean);
+    currentRotation = 0;
+    canvas.style.transition = 'none';
+    canvas.style.transform = 'rotate(0deg)';
+    winnerEl.textContent = '';
+    winnerEl.classList.remove('show');
+    drawWheel();
+  }
+
+  function renderWinners() {
+    winnersList.innerHTML = '';
+    if (winners.length === 0) {
+      emptyMsg.style.display = 'block';
+    } else {
+      emptyMsg.style.display = 'none';
+      winners.forEach((name, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${name}</span><span class="num">#${i + 1}</span>`;
+        winnersList.appendChild(li);
+      });
+    }
+  }
+
+  function fireConfetti() {
+    if (!confettiOn.checked || reduceMotion.checked) return;
+    const confColors = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCB77', '#4D96FF', '#C780FA'];
+    for (let i = 0; i < 80; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.top = '-20px';
+      piece.style.background = confColors[Math.floor(Math.random() * confColors.length)];
+      piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+      piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), 4500);
+    }
+  }
+
+  function speak(text) {
+    if (!speakWinner.checked || !window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(`The winner is ${text}`);
+    u.volume = volume.value / 100;
+    speechSynthesis.speak(u);
+  }
+
+  function spin() {
+    if (spinning || names.length < 1) return;
+    if (names.length === 1) {
+      handleWinner(0);
+      return;
+    }
+    spinning = true;
+    spinBtn.disabled = true;
+    winnerEl.textContent = '';
+    winnerEl.classList.remove('show');
+
+    const winnerIndex = Math.floor(Math.random() * names.length);
+    const segAngleDeg = 360 / names.length;
+    const targetAngle = 360 - (winnerIndex * segAngleDeg + segAngleDeg / 2);
+    const duration = reduceMotion.checked ? 0.5 : parseFloat(spinDuration.value);
+    const fullSpins = reduceMotion.checked ? 1 : (5 + Math.floor(Math.random() * 5));
+    const finalRotation = currentRotation + fullSpins * 360 + (targetAngle - (currentRotation % 360));
+
+    canvas.style.transition = `transform ${duration}s cubic-bezier(0.12, 0.86, 0.16, 1)`;
+    canvas.style.transform = `rotate(${finalRotation}deg)`;
+
+    lastTickSegment = -1;
+    const startTime = performance.now();
+    const startRot = currentRotation;
+    const totalDelta = finalRotation - startRot;
+    function tickLoop(now) {
+      const elapsed = (now - startTime) / 1000;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const currentDeg = startRot + totalDelta * eased;
+      const seg = Math.floor(((360 - (currentDeg % 360)) / segAngleDeg)) % names.length;
+      if (seg !== lastTickSegment) {
+        playTick();
+        lastTickSegment = seg;
+      }
+      if (t < 1 && spinning) requestAnimationFrame(tickLoop);
+    }
+    if (!reduceMotion.checked) requestAnimationFrame(tickLoop);
+
+    currentRotation = finalRotation;
+
+    setTimeout(() => handleWinner(winnerIndex), duration * 1000 + 100);
+  }
+
+  function handleWinner(winnerIndex) {
+    const winnerName = names[winnerIndex];
+    winnerEl.textContent = `🎉 ${winnerName} 🎉`;
+    winnerEl.classList.add('show');
+    fireConfetti();
+    playFanfare();
+    speak(winnerName);
+
+    if (autoRemove.checked) {
+      winners.push(winnerName);
+      names.splice(winnerIndex, 1);
+      namesInput.value = names.join('\n');
+      renderWinners();
+      canvas.style.transition = 'none';
+      canvas.style.transform = 'rotate(0deg)';
+      currentRotation = 0;
+      drawWheel();
+    }
+
+    spinning = false;
+    spinBtn.disabled = false;
+  }
+
+  updateBtn.addEventListener('click', updateNames);
+  clearBtn.addEventListener('click', () => {
+    namesInput.value = '';
+    names = [];
+    drawWheel();
+    winnerEl.textContent = '';
+  });
+  resetBtn.addEventListener('click', () => {
+    names = [...names, ...winners];
+    winners = [];
+    namesInput.value = names.join('\n');
+    winnerEl.textContent = '';
+    winnerEl.classList.remove('show');
+    renderWinners();
+    drawWheel();
+  });
+  spinBtn.addEventListener('click', spin);
+
+  themeSel.addEventListener('change', () => {
+    document.body.className = document.body.className
+      .split(' ').filter(c => !c.startsWith('theme-')).join(' ').trim();
+    if (themeSel.value) document.body.classList.add(themeSel.value);
+  });
+  glowOn.addEventListener('change', () => {
+    document.body.classList.toggle('glow', glowOn.checked);
+  });
+  reduceMotion.addEventListener('change', () => {
+    document.body.classList.toggle('reduce-motion', reduceMotion.checked);
+  });
+  highContrast.addEventListener('change', () => {
+    document.body.classList.toggle('high-contrast', highContrast.checked);
+  });
+  fontSize.addEventListener('input', () => {
+    document.documentElement.style.setProperty('--font-size', fontSize.value + 'px');
+    fontSizeVal.textContent = fontSize.value + 'px';
+  });
+  spinDuration.addEventListener('input', () => {
+    spinDurVal.textContent = spinDuration.value + 's';
+  });
+  volume.addEventListener('input', () => {
+    volumeVal.textContent = volume.value + '%';
+  });
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    reduceMotion.checked = true;
+    document.body.classList.add('reduce-motion');
+  }
+
+  namesInput.value = names.join('\n');
+  drawWheel();
+  renderWinners();
+</script>
+</body>
+</html>
