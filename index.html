@@ -101,6 +101,8 @@
     background: linear-gradient(160deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
     box-shadow: 0 0 40px rgba(0,0,0,0.5);
     padding: 20px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
     overflow-y: auto;
     transition: transform 0.3s ease;
     z-index: 100;
@@ -503,6 +505,10 @@
     /* The status bar area is now ours — make sure topbar fills it cleanly */
     .topbar {
       padding-top: max(20px, env(safe-area-inset-top));
+    }
+    /* Push drawer content below Dynamic Island / notch */
+    .drawer {
+      padding-top: calc(env(safe-area-inset-top) + 16px);
     }
   }
 </style>
