@@ -629,9 +629,35 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllDrawers(); });
 
   // Audio (Web Audio API, no files needed)
+  // iOS quirk: Web Audio routes through the ringer switch by default.
+  // To route through media volume instead, we play a silent looping <audio>
+  // element with playsinline on first interaction. This puts the AudioContext
+  // into the media channel.
   let audioCtx;
+  let audioUnlocked = false;
+  const silentAudio = document.createElement('audio');
+  silentAudio.setAttribute('playsinline', '');
+  silentAudio.setAttribute('webkit-playsinline', '');
+  silentAudio.loop = true;
+  // 1-second silent WAV as a data URI
+  silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+  silentAudio.volume = 0.01;
+
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    silentAudio.play().catch(() => {});
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  // Unlock on first interaction
+  ['click', 'touchstart', 'keydown'].forEach(evt => {
+    document.addEventListener(evt, unlockAudio, { once: true, passive: true });
+  });
+
   function getAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
   function playTick() {
