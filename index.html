@@ -483,6 +483,28 @@
     }
     .main { padding-bottom: max(30px, env(safe-area-inset-bottom)); }
   }
+
+  /* Standalone PWA mode (added to home screen) */
+  @media (display-mode: standalone) {
+    body {
+      /* Prevent overscroll bounce on iOS in standalone mode */
+      overscroll-behavior-y: none;
+      /* Disable text selection by default for app feel */
+      -webkit-user-select: none;
+      user-select: none;
+      /* Disable iOS tap highlight */
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Allow selection in textarea where it actually matters */
+    textarea, input {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    /* The status bar area is now ours — make sure topbar fills it cleanly */
+    .topbar {
+      padding-top: max(20px, env(safe-area-inset-top));
+    }
+  }
 </style>
 </head>
 <body>
