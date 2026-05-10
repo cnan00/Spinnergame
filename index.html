@@ -87,14 +87,22 @@
     height: 100vh;
     width: 340px;
     max-width: 90vw;
-    background: rgba(20, 30, 60, 0.97);
-    backdrop-filter: blur(20px);
+    background: linear-gradient(160deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
     box-shadow: 0 0 40px rgba(0,0,0,0.5);
     padding: 20px;
     overflow-y: auto;
     transition: transform 0.3s ease;
     z-index: 100;
   }
+  .drawer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    z-index: -1;
+  }
+  .drawer > * { position: relative; }
   .drawer.left { left: 0; transform: translateX(-110%); }
   .drawer.right { right: 0; transform: translateX(110%); }
   .drawer.open { transform: translateX(0); }
@@ -157,6 +165,29 @@
   button.action.secondary { background: #fff; }
   button.action:disabled { opacity: 0.5; cursor: not-allowed; }
   button.action:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+  .minor-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+  }
+  button.action.minor {
+    flex: 1;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.25);
+    font-size: 0.8em;
+    font-weight: 500;
+    padding: 8px 10px;
+    min-width: 0;
+  }
+  button.action.minor:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    transform: none;
+  }
 
   .setting {
     margin-bottom: 18px;
@@ -424,21 +455,19 @@
   <div id="scrim" class="scrim"></div>
 
   <aside id="namesDrawer" class="drawer left" aria-label="Names list" aria-hidden="true">
-    <button class="drawer-close" data-close-drawer aria-label="Close names panel">←</button>
+    <button class="drawer-close" data-close-drawer aria-label="Close names panel">→</button>
     <h2>Names</h2>
     <p class="desc" style="opacity:0.7; font-size:0.85em; margin-top:-8px;">One per line</p>
     <textarea id="namesInput" aria-label="Enter names, one per line" placeholder="Alice&#10;Bob&#10;Charlie&#10;Dana"></textarea>
-    <div class="row">
-      <button class="action" id="updateBtn">Update Wheel</button>
-      <button class="action secondary" id="clearBtn">Clear</button>
-    </div>
-    <div class="row" style="margin-top:14px;">
-      <button class="action secondary" id="resetBtn">Restore Picked</button>
+    <button class="action" id="updateBtn" style="width: 100%; margin-top: 10px; padding: 14px;">Update Wheel</button>
+    <div class="minor-row">
+      <button class="action minor" id="clearBtn">Clear all</button>
+      <button class="action minor" id="resetBtn">Restore picked</button>
     </div>
   </aside>
 
   <aside id="settingsDrawer" class="drawer right" aria-label="Settings" aria-hidden="true">
-    <button class="drawer-close" data-close-drawer aria-label="Close settings">→</button>
+    <button class="drawer-close" data-close-drawer aria-label="Close settings">←</button>
     <h2>⚙️ Settings</h2>
 
     <h3 style="margin-top:20px; font-size:1em; opacity:0.8;">🔊 Sound</h3>
@@ -525,16 +554,6 @@
       <label for="fontSize">Text size <span id="fontSizeVal">16px</span></label>
       <input type="range" id="fontSize" min="14" max="22" value="16" aria-label="Text size">
     </div>
-    <div class="setting">
-      <label>
-        Announce winner aloud
-        <span class="switch">
-          <input type="checkbox" id="speakWinner">
-          <span class="slider"></span>
-        </span>
-      </label>
-      <div class="desc">Uses speech synthesis</div>
-    </div>
   </aside>
 
   <main class="main">
@@ -589,7 +608,6 @@
   const highContrast = document.getElementById('highContrast');
   const fontSize = document.getElementById('fontSize');
   const fontSizeVal = document.getElementById('fontSizeVal');
-  const speakWinner = document.getElementById('speakWinner');
 
   let names = [];
   let winners = [];
@@ -812,13 +830,6 @@
     }
   }
 
-  function speak(text) {
-    if (!speakWinner.checked || !window.speechSynthesis) return;
-    const u = new SpeechSynthesisUtterance(`The winner is ${text}`);
-    u.volume = volume.value / 100;
-    speechSynthesis.speak(u);
-  }
-
   function spin() {
     if (spinning || names.length < 1) return;
     if (names.length === 1) {
@@ -869,7 +880,6 @@
     winnerEl.classList.add('show');
     fireConfetti();
     playFanfare();
-    speak(winnerName);
 
     if (autoRemove.checked) {
       winners.push(winnerName);
@@ -888,12 +898,16 @@
 
   updateBtn.addEventListener('click', updateNames);
   clearBtn.addEventListener('click', () => {
-    namesInput.value = '';
-    names = [];
-    drawWheel();
-    winnerEl.textContent = '';
+    if (names.length === 0 || confirm('Clear all names from the list?')) {
+      namesInput.value = '';
+      names = [];
+      drawWheel();
+      winnerEl.textContent = '';
+    }
   });
   resetBtn.addEventListener('click', () => {
+    if (winners.length === 0) return;
+    if (!confirm(`Restore ${winners.length} picked name${winners.length === 1 ? '' : 's'} back to the wheel?`)) return;
     names = [...names, ...winners];
     winners = [];
     namesInput.value = names.join('\n');
